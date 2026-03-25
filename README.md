@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vocaburarier 📚
+
+> Master IELTS vocabulary through active recall and spaced repetition
+
+**Vocaburarier** is a personal vocabulary learning app designed to help you achieve IELTS Band 6.5+ through scientifically-proven learning techniques.
+
+## Why Vocaburarier?
+
+Learning vocabulary effectively isn't about memorizing long word lists. It's about:
+
+- 🧠 **Active Recall** - Testing yourself strengthens memory far better than passive reading
+- 📈 **Spaced Repetition** - Reviewing words at optimal intervals for long-term retention  
+- 🎯 **Context Learning** - Understanding words through definitions, examples, and collocations
+- 🔊 **Pronunciation Practice** - Hearing and speaking words correctly
+
+## Features
+
+### Daily Learning
+Every day, you'll receive 5 carefully selected words based on your learning progress. Each word includes:
+- English definition (all in English for immersion)
+- IPA pronunciation with text-to-speech
+- Example sentences showing real usage
+- Synonyms, antonyms, and common collocations
+- IELTS-specific usage tips
+
+### Multiple Practice Modes
+
+| Mode | Description |
+|------|-------------|
+| 📚 **Daily Words** | Your personalized daily vocabulary dose |
+| 🃏 **Flashcards** | Classic flip-card review with self-rating |
+| ❓ **Quiz** | Multiple choice questions to test knowledge |
+| ✍️ **Writing** | Fill-in-the-blank exercises for spelling |
+
+### Progress Tracking
+- 🔥 Daily streak counter to keep you motivated
+- 📊 Statistics on words learned and accuracy
+- 🏅 Achievements to celebrate milestones
+- 📈 Visual progress of mastered vs. learning words
+
+### Smart Features
+- 🌙 Dark/Light theme
+- ⌨️ Keyboard shortcuts for fast navigation
+- 📤 Export/Import your vocabulary
+- 🔔 Daily reminder notifications
+- 🔍 Search and filter by topic or difficulty
+
+## Vocabulary Sources
+
+Our vocabulary is curated from trusted IELTS preparation sources:
+
+- **Academic Word List (AWL)** - The essential 570 word families for academic English
+- **Cambridge IELTS Vocabulary** - High-frequency words from official IELTS materials
+- **Topic-based Collections** - Environment, Technology, Education, Health, Society, Economy
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Start the app
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## How to Use
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Start with Daily Words** - Review your 5 words for today
+2. **Listen and Repeat** - Use the speaker button to hear pronunciation
+3. **Read Examples** - Understand how the word is used in context
+4. **Practice with Flashcards** - Test your recall and rate yourself honestly
+5. **Take Quizzes** - Challenge yourself with multiple choice questions
+6. **Write it Out** - Practice spelling with fill-in-the-blank exercises
+7. **Track Progress** - Watch your streak grow and unlock achievements
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tips for Success
 
-## Learn More
+- 📅 **Be consistent** - Even 10 minutes daily beats 1 hour weekly
+- 🎯 **Rate honestly** - The spaced repetition works best with accurate self-assessment
+- 🗣️ **Speak aloud** - Don't just read, say the words out loud
+- ✍️ **Use new words** - Try to use learned words in your writing and speaking
+- 🔄 **Review regularly** - Trust the system and review when words come up
 
-To learn more about Next.js, take a look at the following resources:
+## Your IELTS Journey
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This app is designed for learners targeting **IELTS Band 6.5+**. The vocabulary is carefully selected to:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Match the academic register expected in IELTS
+- Cover common topics in Writing Task 2 and Speaking Part 3
+- Include words frequently appearing in Reading passages
+- Build the sophisticated vocabulary that distinguishes Band 6.5+ responses
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Good luck with your IELTS preparation! 🚀**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*Remember: Vocabulary is just one part of IELTS. Combine this with reading practice, writing exercises, and speaking practice for the best results.*
