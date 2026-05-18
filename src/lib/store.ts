@@ -3,10 +3,10 @@
  * Uses localStorage for persistence (perfect for personal use)
  */
 
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { v4 as uuidv4 } from 'uuid';
-import { format, isToday, differenceInDays } from 'date-fns';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { v4 as uuidv4 } from "uuid";
+import { format, differenceInDays } from "date-fns";
 import {
   Word,
   UserProgress,
@@ -14,9 +14,13 @@ import {
   Statistics,
   AppSettings,
   ReviewQuality,
-} from '@/types';
-import { calculateNextReview, getWordsDueForReview, sortByReviewPriority } from '@/lib/srs';
-import allVocabulary from '@/data/ielts-vocabulary';
+} from "@/types";
+import {
+  calculateNextReview,
+  getWordsDueForReview,
+  sortByReviewPriority,
+} from "@/lib/srs";
+import allVocabulary from "@/data/ielts-vocabulary";
 
 interface VocabularyStore {
   // State
@@ -29,33 +33,35 @@ interface VocabularyStore {
 
   // Actions
   initialize: () => void;
-  addWord: (word: Omit<Word, 'id' | 'source' | 'createdAt' | 'updatedAt'>) => void;
+  addWord: (
+    word: Omit<Word, "id" | "source" | "createdAt" | "updatedAt">,
+  ) => void;
   updateWord: (id: string, updates: Partial<Word>) => void;
   deleteWord: (id: string) => void;
-  
+
   // Daily session
   createDailySession: () => void;
   refreshDailyWords: () => void;
   markWordCompleted: (wordId: string) => void;
-  
+
   // SRS & Reviews
   recordReview: (wordId: string, quality: ReviewQuality) => void;
   getWordsForReview: () => Word[];
   getDailyWords: () => Word[];
-  
+
   // Statistics
   updateStatistics: () => void;
-  
+
   // Settings
   updateSettings: (updates: Partial<AppSettings>) => void;
 }
 
 const defaultSettings: AppSettings = {
   dailyWordCount: 5,
-  reviewMode: 'mixed',
+  reviewMode: "mixed",
   showPhonetic: true,
   autoPlayAudio: false,
-  theme: 'system',
+  theme: "system",
 };
 
 const defaultStatistics: Statistics = {
@@ -90,7 +96,7 @@ export const useVocabularyStore = create<VocabularyStore>()(
         }
 
         // Create daily session if needed
-        const today = format(new Date(), 'yyyy-MM-dd');
+        const today = format(new Date(), "yyyy-MM-dd");
         if (!state.dailySession || state.dailySession.date !== today) {
           get().createDailySession();
         }
@@ -103,7 +109,7 @@ export const useVocabularyStore = create<VocabularyStore>()(
         const newWord: Word = {
           ...wordData,
           id: uuidv4(),
-          source: 'user',
+          source: "user",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -119,7 +125,7 @@ export const useVocabularyStore = create<VocabularyStore>()(
           words: state.words.map((word) =>
             word.id === id
               ? { ...word, ...updates, updatedAt: new Date().toISOString() }
-              : word
+              : word,
           ),
         }));
       },
@@ -129,7 +135,7 @@ export const useVocabularyStore = create<VocabularyStore>()(
         set((state) => ({
           words: state.words.filter((word) => word.id !== id),
           userProgress: Object.fromEntries(
-            Object.entries(state.userProgress).filter(([key]) => key !== id)
+            Object.entries(state.userProgress).filter(([key]) => key !== id),
           ),
         }));
       },
@@ -137,7 +143,7 @@ export const useVocabularyStore = create<VocabularyStore>()(
       // Create a new daily session
       createDailySession: () => {
         const state = get();
-        const today = format(new Date(), 'yyyy-MM-dd');
+        const today = format(new Date(), "yyyy-MM-dd");
         const wordCount = state.settings.dailyWordCount;
 
         // Get words based on review mode
@@ -145,29 +151,40 @@ export const useVocabularyStore = create<VocabularyStore>()(
         const allWordIds = state.words.map((w) => w.id);
 
         switch (state.settings.reviewMode) {
-          case 'srs':
+          case "srs":
             // Prioritize words due for review
-            const dueWordIds = getWordsDueForReview(allWordIds, state.userProgress);
-            const sortedDue = sortByReviewPriority(dueWordIds, state.userProgress);
+            const dueWordIds = getWordsDueForReview(
+              allWordIds,
+              state.userProgress,
+            );
+            const sortedDue = sortByReviewPriority(
+              dueWordIds,
+              state.userProgress,
+            );
             selectedWordIds = sortedDue.slice(0, wordCount);
             break;
 
-          case 'random':
+          case "random":
             // Purely random selection
             const shuffled = [...allWordIds].sort(() => Math.random() - 0.5);
             selectedWordIds = shuffled.slice(0, wordCount);
             break;
 
-          case 'mixed':
+          case "mixed":
           default:
             // Mix of due words and random new words
             const due = getWordsDueForReview(allWordIds, state.userProgress);
             const sorted = sortByReviewPriority(due, state.userProgress);
-            const dueCount = Math.min(Math.ceil(wordCount * 0.6), sorted.length);
+            const dueCount = Math.min(
+              Math.ceil(wordCount * 0.6),
+              sorted.length,
+            );
             const dueSelection = sorted.slice(0, dueCount);
 
             // Get random words for the remaining slots
-            const remaining = allWordIds.filter((id) => !dueSelection.includes(id));
+            const remaining = allWordIds.filter(
+              (id) => !dueSelection.includes(id),
+            );
             const randomRemaining = remaining
               .sort(() => Math.random() - 0.5)
               .slice(0, wordCount - dueSelection.length);
@@ -177,7 +194,10 @@ export const useVocabularyStore = create<VocabularyStore>()(
         }
 
         // Ensure we have enough words
-        if (selectedWordIds.length < wordCount && allWordIds.length >= wordCount) {
+        if (
+          selectedWordIds.length < wordCount &&
+          allWordIds.length >= wordCount
+        ) {
           const additional = allWordIds
             .filter((id) => !selectedWordIds.includes(id))
             .sort(() => Math.random() - 0.5)
@@ -209,7 +229,9 @@ export const useVocabularyStore = create<VocabularyStore>()(
           return {
             dailySession: {
               ...state.dailySession,
-              completedWordIds: state.dailySession.completedWordIds.includes(wordId)
+              completedWordIds: state.dailySession.completedWordIds.includes(
+                wordId,
+              )
                 ? state.dailySession.completedWordIds
                 : [...state.dailySession.completedWordIds, wordId],
             },
@@ -232,8 +254,10 @@ export const useVocabularyStore = create<VocabularyStore>()(
           repetitions: srsResult.repetitions,
           nextReviewDate: srsResult.nextReviewDate,
           lastReviewDate: new Date().toISOString(),
-          correctCount: (currentProgress?.correctCount || 0) + (isCorrect ? 1 : 0),
-          incorrectCount: (currentProgress?.incorrectCount || 0) + (isCorrect ? 0 : 1),
+          correctCount:
+            (currentProgress?.correctCount || 0) + (isCorrect ? 1 : 0),
+          incorrectCount:
+            (currentProgress?.incorrectCount || 0) + (isCorrect ? 0 : 1),
           lastQuality: quality,
         };
 
@@ -259,7 +283,9 @@ export const useVocabularyStore = create<VocabularyStore>()(
         const dueIds = getWordsDueForReview(allWordIds, state.userProgress);
         const sortedIds = sortByReviewPriority(dueIds, state.userProgress);
 
-        return sortedIds.map((id) => state.words.find((w) => w.id === id)!).filter(Boolean);
+        return sortedIds
+          .map((id) => state.words.find((w) => w.id === id)!)
+          .filter(Boolean);
       },
 
       // Get today's daily words
@@ -275,7 +301,7 @@ export const useVocabularyStore = create<VocabularyStore>()(
       // Update statistics
       updateStatistics: () => {
         const state = get();
-        const today = format(new Date(), 'yyyy-MM-dd');
+        const today = format(new Date(), "yyyy-MM-dd");
 
         // Calculate streak
         let streak = state.statistics.streakDays;
@@ -298,17 +324,23 @@ export const useVocabularyStore = create<VocabularyStore>()(
 
         // Calculate total words learned (words with at least one successful review)
         const wordsLearned = Object.values(state.userProgress).filter(
-          (p) => p.correctCount > 0
+          (p) => p.correctCount > 0,
         ).length;
 
         // Calculate average accuracy
         const progressValues = Object.values(state.userProgress);
-        const totalCorrect = progressValues.reduce((sum, p) => sum + p.correctCount, 0);
+        const totalCorrect = progressValues.reduce(
+          (sum, p) => sum + p.correctCount,
+          0,
+        );
         const totalAttempts = progressValues.reduce(
           (sum, p) => sum + p.correctCount + p.incorrectCount,
-          0
+          0,
         );
-        const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+        const accuracy =
+          totalAttempts > 0
+            ? Math.round((totalCorrect / totalAttempts) * 100)
+            : 0;
 
         set((state) => ({
           statistics: {
@@ -332,7 +364,7 @@ export const useVocabularyStore = create<VocabularyStore>()(
       },
     }),
     {
-      name: 'vocaburarier-storage',
+      name: "vocaburarier-storage",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         words: state.words,
@@ -341,6 +373,6 @@ export const useVocabularyStore = create<VocabularyStore>()(
         statistics: state.statistics,
         settings: state.settings,
       }),
-    }
-  )
+    },
+  ),
 );

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { oxford3000, OxfordWord } from '@/data/oxford-3000';
+import { evaluateAnswer } from '@/lib/gemini';
 
 interface OxfordPracticeProps {
   onClose: () => void;
@@ -22,7 +23,7 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
     return oxford3000[randomIndex];
   };
 
-  const handleNewWord = () => {
+  const handleNewWord = useCallback(() => {
     setCurrentWord(getRandomWord());
     setUserInput('');
     setFeedback(null);
@@ -31,53 +32,38 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
     if (mode === 'translation') {
       setDirection(Math.random() > 0.5 ? 'en-to-vi' : 'vi-to-en');
     }
-  };
+  }, [mode]);
 
-  const handleCheckAnswer = () => {
+  const handleCheckAnswer = async () => {
     if (!currentWord || !userInput.trim()) return;
 
     setIsChecking(true);
-    const userAnswer = userInput.trim().toLowerCase();
-    let isCorrect = false;
-    let message = '';
+    const userAnswer = userInput.trim();
 
+    let expectedAnswer = '';
     if (mode === 'translation') {
       if (direction === 'en-to-vi') {
-        // English to Vietnamese: check if user input matches Vietnamese translation
-        const vietnamese = currentWord.vietnamese?.toLowerCase() || '';
-        isCorrect = userAnswer === vietnamese;
-        if (isCorrect) {
-          message = 'Correct! 🎉';
-        } else {
-          message = 'Incorrect. Click the light bulb to see the answer.';
-        }
+        expectedAnswer = currentWord.vietnamese || '';
       } else {
-        // Vietnamese to English: check if user input matches English word
-        const english = currentWord.word.toLowerCase();
-        isCorrect = userAnswer === english;
-        if (isCorrect) {
-          message = 'Correct! 🎉';
-        } else {
-          message = 'Incorrect. Click the light bulb to see the answer.';
-        }
+        expectedAnswer = currentWord.word;
       }
     } else if (mode === 'synonym') {
-      // Synonym mode: check if user input matches any of the synonyms
-      const synonyms = currentWord.synonyms?.map(s => s.toLowerCase()) || [];
-      isCorrect = synonyms.includes(userAnswer);
-      
-      if (isCorrect) {
-        message = 'Correct! 🎉 That is indeed a synonym.';
-      } else {
-        message = 'Incorrect. Click the light bulb to see the answer.';
-      }
+      expectedAnswer = (currentWord.synonyms || []).join(', ');
     }
 
-    setFeedback({ correct: isCorrect, message });
+    const result = await evaluateAnswer(
+      currentWord.word,
+      expectedAnswer,
+      userAnswer,
+      mode,
+      direction
+    );
+
+    setFeedback(result);
     setIsChecking(false);
     
     // If correct, automatically go to new word after a short delay
-    if (isCorrect) {
+    if (result.correct) {
       setTimeout(() => {
         handleNewWord();
       }, 1500);
@@ -87,7 +73,7 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
   // Initialize with a random word on mount
   useEffect(() => {
     handleNewWord();
-  }, [mode]);
+  }, [handleNewWord]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -236,9 +222,9 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
                       <strong>Answer:</strong> 
                       {mode === 'translation' 
                         ? (direction === 'en-to-vi' 
-                          ? currentWord.vietnamese 
-                          : currentWord.word)
-                        : currentWord.synonyms?.join(', ')}
+                          ? currentWord?.vietnamese 
+                          : currentWord?.word)
+                        : currentWord?.synonyms?.join(', ')}
                     </p>
                   </div>
                 )}
