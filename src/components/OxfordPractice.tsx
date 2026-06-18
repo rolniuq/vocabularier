@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { oxford3000 } from '@/data/oxford-3000';
+import { extendedOxford3000 } from '@/data/extended-oxford';
 import { evaluateAnswer } from '@/lib/gemini';
 
 interface OxfordPracticeProps {
@@ -9,7 +9,7 @@ interface OxfordPracticeProps {
 }
 
 export function OxfordPractice({ onClose }: OxfordPracticeProps) {
-  const [currentWord, setCurrentWord] = useState<typeof oxford3000[number] | null>(null);
+  const [currentWord, setCurrentWord] = useState<typeof extendedOxford3000[number] | null>(null);
   const [userInput, setUserInput] = useState('');
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null);
   const [direction, setDirection] = useState<'en-to-vi' | 'vi-to-en'>('en-to-vi');
@@ -17,8 +17,8 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
   const [showAnswer, setShowAnswer] = useState(false);
 
   const getRandomWord = () => {
-    const randomIndex = Math.floor(Math.random() * oxford3000.length);
-    return oxford3000[randomIndex];
+    const randomIndex = Math.floor(Math.random() * extendedOxford3000.length);
+    return extendedOxford3000[randomIndex];
   };
 
   const handleNewWord = useCallback(() => {
