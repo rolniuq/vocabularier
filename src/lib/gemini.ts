@@ -5,10 +5,8 @@ export interface EvaluationResult {
 
 export async function evaluateAnswer(
   word: string,
-  expectedAnswer: string,
   userAnswer: string,
-  mode: 'translation' | 'synonym',
-  direction?: 'en-to-vi' | 'vi-to-en',
+  direction: 'en-to-vi' | 'vi-to-en',
   vietnamese?: string
 ): Promise<EvaluationResult> {
   try {
@@ -19,9 +17,7 @@ export async function evaluateAnswer(
       },
       body: JSON.stringify({
         word,
-        expectedAnswer,
         userAnswer,
-        mode,
         direction,
         vietnamese,
       }),
@@ -34,42 +30,36 @@ export async function evaluateAnswer(
 
     return await response.json();
   } catch (error) {
-    console.error('Gemini evaluation error:', error);
-    // Fallback to strict comparison if the API call fails
-    return fallbackEvaluation(word, expectedAnswer, userAnswer, mode, direction);
+    console.error('AI evaluation error:', error);
+    return fallbackEvaluation(word, userAnswer, direction, vietnamese);
   }
 }
 
 function fallbackEvaluation(
   word: string,
-  expectedAnswer: string,
   userAnswer: string,
-  mode: 'translation' | 'synonym',
-  direction?: 'en-to-vi' | 'vi-to-en'
+  direction: 'en-to-vi' | 'vi-to-en',
+  vietnamese?: string
 ): EvaluationResult {
   const normalizedUser = userAnswer.trim().toLowerCase();
-  let isCorrect = false;
-  let message = '';
 
-  if (mode === 'translation') {
-    if (direction === 'en-to-vi') {
-      const vietnamese = expectedAnswer.toLowerCase();
-      isCorrect = normalizedUser === vietnamese;
-    } else {
-      const english = word.toLowerCase();
-      isCorrect = normalizedUser === english;
-    }
-  } else if (mode === 'synonym') {
-    // Expected answer is expected to be a comma separated list of synonyms
-    const synonyms = expectedAnswer.toLowerCase().split(',').map(s => s.trim());
-    isCorrect = synonyms.includes(normalizedUser);
-  }
-
-  if (isCorrect) {
-    message = 'Correct! 🎉 (Fallback evaluation)';
+  if (direction === 'en-to-vi') {
+    const target = (vietnamese || '').toLowerCase();
+    const isCorrect = normalizedUser === target;
+    return {
+      correct: isCorrect,
+      message: isCorrect
+        ? 'Correct! (Fallback evaluation)'
+        : 'Incorrect. Try again.',
+    };
   } else {
-    message = 'Incorrect. Click the light bulb to see the answer. (Fallback evaluation)';
+    const target = word.toLowerCase();
+    const isCorrect = normalizedUser === target;
+    return {
+      correct: isCorrect,
+      message: isCorrect
+        ? 'Correct! (Fallback evaluation)'
+        : 'Incorrect. Try again.',
+    };
   }
-
-  return { correct: isCorrect, message };
 }

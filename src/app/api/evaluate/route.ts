@@ -1,88 +1,69 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 
-// Make sure to set GEMINI_API_KEY in your .env.local file
-const apiKey = process.env.GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey: apiKey || '' });
+const apiKey = process.env.GROQ_API_KEY;
 
 export async function POST(request: Request) {
   try {
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'GEMINI_API_KEY is not configured in the environment variables.' },
+        { error: 'GROQ_API_KEY is not configured in the environment variables.' },
         { status: 500 }
       );
     }
 
     const body = await request.json();
-    const { word, expectedAnswer, userAnswer, mode, direction, vietnamese } = body;
+    const { word, userAnswer, direction, vietnamese } = body;
 
-    if (!word || !expectedAnswer || !userAnswer || !mode) {
+    if (!word || !userAnswer || !direction) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    let prompt = '';
+    const isEnToVi = direction === 'en-to-vi';
+    const sourceText = isEnToVi ? word : (vietnamese || '');
+    const targetLanguage = isEnToVi ? 'Vietnamese' : 'English';
 
-    if (mode === 'translation') {
-      if (direction === 'en-to-vi') {
-        prompt = `
-You are a strict but fair language teacher grading a translation test.
-The user was asked to translate the English word "${word}" into Vietnamese.
-The exact textbook answer is "${expectedAnswer}".
+    const prompt = `You are a strict but fair language teacher grading a translation test.
+The user was asked to translate "${sourceText}" into ${targetLanguage}.
 The user's answer is: "${userAnswer}".
 
-Evaluate if the user's answer is a correct and natural translation for the word "${word}". 
-Minor spelling mistakes or different words with the exact same semantic meaning should be accepted.
-Respond ONLY with a JSON object containing "correct" (boolean) and "message" (string giving short feedback).
-Format: {"correct": true, "message": "Good job! 'rời bỏ' is also correct."}
-`;
-      } else {
-        const vietnameseText = vietnamese || expectedAnswer;
-        prompt = `
-You are a strict but fair language teacher grading a translation test.
-The user was asked to translate the Vietnamese word/phrase "${vietnameseText}" into English.
-The exact textbook answer is "${word}".
-The user's answer is: "${userAnswer}".
+Evaluate if the user's answer is a correct and natural translation.
+- Accept minor spelling mistakes and different words with the same semantic meaning.
+- For English to Vietnamese: accept common alternative translations.
+- For Vietnamese to English: accept valid synonyms or close equivalents.
+- Be generous — if the meaning is clearly conveyed, mark as correct.
+Respond ONLY with a JSON object containing "correct" (boolean) and "message" (string giving short feedback in English).
+Format: {"correct": true, "message": "Correct! Natural translation."}`;
 
-Evaluate if the user's answer is a correct and natural translation. 
-Minor spelling mistakes or valid synonyms should be accepted.
-Respond ONLY with a JSON object containing "correct" (boolean) and "message" (string giving short feedback).
-Format: {"correct": true, "message": "Good job! 'leave' is also correct."}
-`;
-      }
-    } else if (mode === 'synonym') {
-      prompt = `
-You are a strict but fair language teacher grading a vocabulary test.
-The user was asked to provide a synonym for the English word "${word}".
-Some textbook synonyms are: ${expectedAnswer}.
-The user's answer is: "${userAnswer}".
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+      }),
+    });
 
-Evaluate if the user's answer is a valid synonym for the word "${word}". 
-Respond ONLY with a JSON object containing "correct" (boolean) and "message" (string giving short feedback).
-Format: {"correct": true, "message": "Yes, 'quit' is a great synonym."}
-`;
-    } else {
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Groq API error:', errorData);
       return NextResponse.json(
-        { error: 'Invalid mode' },
-        { status: 400 }
+        { error: 'AI evaluation service failed' },
+        { status: 502 }
       );
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        temperature: 0.2, // Low temperature for more deterministic grading
-      }
-    });
-
-    const textResponse = response.text;
+    const data = await response.json();
+    const textResponse = data.choices?.[0]?.message?.content;
     if (!textResponse) {
-      throw new Error('Empty response from Gemini');
+      throw new Error('Empty response from Groq');
     }
 
     const jsonResponse = JSON.parse(textResponse);

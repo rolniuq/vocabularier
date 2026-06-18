@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { oxford3000, OxfordWord } from '@/data/oxford-3000';
+import { oxford3000 } from '@/data/oxford-3000';
 import { evaluateAnswer } from '@/lib/gemini';
 
 interface OxfordPracticeProps {
@@ -9,15 +9,13 @@ interface OxfordPracticeProps {
 }
 
 export function OxfordPractice({ onClose }: OxfordPracticeProps) {
-  const [currentWord, setCurrentWord] = useState<OxfordWord | null>(null);
+  const [currentWord, setCurrentWord] = useState<typeof oxford3000[number] | null>(null);
   const [userInput, setUserInput] = useState('');
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null);
-  const [mode, setMode] = useState<'translation' | 'synonym'>('translation');
   const [direction, setDirection] = useState<'en-to-vi' | 'vi-to-en'>('en-to-vi');
   const [isChecking, setIsChecking] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
 
-  // Initialize with a random word
   const getRandomWord = () => {
     const randomIndex = Math.floor(Math.random() * oxford3000.length);
     return oxford3000[randomIndex];
@@ -28,11 +26,14 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
     setUserInput('');
     setFeedback(null);
     setShowAnswer(false);
-    // Randomly choose direction for translation mode
-    if (mode === 'translation') {
-      setDirection(Math.random() > 0.5 ? 'en-to-vi' : 'vi-to-en');
-    }
-  }, [mode]);
+  }, []);
+
+  const toggleDirection = () => {
+    setDirection(d => d === 'en-to-vi' ? 'vi-to-en' : 'en-to-vi');
+    setUserInput('');
+    setFeedback(null);
+    setShowAnswer(false);
+  };
 
   const handleCheckAnswer = async () => {
     if (!currentWord || !userInput.trim()) return;
@@ -40,30 +41,16 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
     setIsChecking(true);
     const userAnswer = userInput.trim();
 
-    let expectedAnswer = '';
-    if (mode === 'translation') {
-      if (direction === 'en-to-vi') {
-        expectedAnswer = currentWord.vietnamese || '';
-      } else {
-        expectedAnswer = currentWord.word;
-      }
-    } else if (mode === 'synonym') {
-      expectedAnswer = (currentWord.synonyms || []).join(', ');
-    }
-
     const result = await evaluateAnswer(
       currentWord.word,
-      expectedAnswer,
       userAnswer,
-      mode,
       direction,
       currentWord.vietnamese
     );
 
     setFeedback(result);
     setIsChecking(false);
-    
-    // If correct, automatically go to new word after a short delay
+
     if (result.correct) {
       setTimeout(() => {
         handleNewWord();
@@ -71,7 +58,6 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
     }
   };
 
-  // Initialize with a random word on mount
   useEffect(() => {
     handleNewWord();
   }, [handleNewWord]);
@@ -79,7 +65,6 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg w-full max-w-md p-6 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             Oxford 3000 Practice
@@ -92,94 +77,52 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
           </button>
         </div>
 
-        {/* Mode selector */}
-        <div className="flex justify-center space-x-4 mb-4">
+        <div className="flex justify-center">
           <button
-            onClick={() => setMode('translation')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              mode === 'translation'
-                ? 'bg-blue-500 text-white'
-                : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
-            }`}
+            onClick={toggleDirection}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
           >
-            Translation
-          </button>
-          <button
-            onClick={() => setMode('synonym')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              mode === 'synonym'
-                ? 'bg-blue-500 text-white'
-                : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
-            }`}
-          >
-            Synonyms
+            {direction === 'en-to-vi' ? 'English → Vietnamese' : 'Vietnamese → English'}
           </button>
         </div>
 
-        {/* Word to translate or find synonyms for */}
         {currentWord ? (
           <div className="text-center">
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-4">
-              {mode === 'translation' ? (
-                <>
-                  {direction === 'en-to-vi' ? (
-                    <>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                        Translate to Vietnamese:
-                      </p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {currentWord.word}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                        Translate to English:
-                      </p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {currentWord.vietnamese}
-                      </p>
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    Give a synonym for:
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {currentWord.word}
-                  </p>
-                </>
-              )}
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                {direction === 'en-to-vi'
+                  ? 'Translate to Vietnamese:'
+                  : 'Translate to English:'}
+              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {direction === 'en-to-vi' ? currentWord.word : currentWord.vietnamese}
+              </p>
             </div>
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400">
-              Loading...
-            </p>
+            <p className="text-gray-500 dark:text-gray-400">Loading...</p>
           </div>
         )}
 
-        {/* Input */}
         <div>
-          <label
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Your answer:
           </label>
           <input
             type="text"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            placeholder={mode === 'translation' ? 'Type your translation here...' : 'Type a synonym here...'}
+            placeholder={
+              direction === 'en-to-vi'
+                ? 'Type Vietnamese translation...'
+                : 'Type English translation...'
+            }
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all"
             disabled={isChecking}
           />
         </div>
 
-        {/* Buttons */}
         <div className="flex gap-3">
           <button
             onClick={handleCheckAnswer}
@@ -196,7 +139,6 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
           </button>
         </div>
 
-        {/* Feedback */}
         {feedback && (
           <div className={`mt-4 p-3 rounded-lg ${
             feedback.correct
@@ -220,12 +162,10 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
                 {showAnswer && (
                   <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <p className="text-sm">
-                      <strong>Answer:</strong> 
-                      {mode === 'translation' 
-                        ? (direction === 'en-to-vi' 
-                          ? currentWord?.vietnamese 
-                          : currentWord?.word)
-                        : currentWord?.synonyms?.join(', ')}
+                      <strong>Answer:</strong>{' '}
+                      {direction === 'en-to-vi'
+                        ? currentWord?.vietnamese
+                        : currentWord?.word}
                     </p>
                   </div>
                 )}
@@ -234,9 +174,9 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
           </div>
         )}
       </div>
-     </div>
-   );
- }
+    </div>
+  );
+}
 
 function LightBulbIcon({ className = '' }: { className?: string }) {
   return (
