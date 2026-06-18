@@ -56,7 +56,8 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
       expectedAnswer,
       userAnswer,
       mode,
-      direction
+      direction,
+      currentWord.vietnamese
     );
 
     setFeedback(result);
@@ -240,7 +241,7 @@ export function OxfordPractice({ onClose }: OxfordPracticeProps) {
 function LightBulbIcon({ className = '' }: { className?: string }) {
   return (
     <svg className={`w-5 h-5 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 14a5 5 0 01-10 0m0 0a8 8 0 005.657 2.143M10 14a5 5 0 0110 0m-9 4a1 1 0 100-2m9 2a1 1 0 1000-2m9 2a1 1 0 1000-2m5-6a1 1 0 1000-2m9 4a1 1 0 1000-2m9-4a1 1 0 1000-2m5-6a1 1 0 1000-2m9 4a1 1 0 1000 2z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.272 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
     </svg>
   );
 }

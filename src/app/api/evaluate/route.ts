@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { word, expectedAnswer, userAnswer, mode, direction } = body;
+    const { word, expectedAnswer, userAnswer, mode, direction, vietnamese } = body;
 
     if (!word || !expectedAnswer || !userAnswer || !mode) {
       return NextResponse.json(
@@ -40,9 +40,10 @@ Respond ONLY with a JSON object containing "correct" (boolean) and "message" (st
 Format: {"correct": true, "message": "Good job! 'rời bỏ' is also correct."}
 `;
       } else {
+        const vietnameseText = vietnamese || expectedAnswer;
         prompt = `
 You are a strict but fair language teacher grading a translation test.
-The user was asked to translate the Vietnamese word/phrase "${expectedAnswer}" into English.
+The user was asked to translate the Vietnamese word/phrase "${vietnameseText}" into English.
 The exact textbook answer is "${word}".
 The user's answer is: "${userAnswer}".
 

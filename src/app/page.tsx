@@ -27,7 +27,6 @@ export default function Home() {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [expandedWordId, setExpandedWordId] = useState<string | null>(null);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
-  const [showOxfordPractice, setShowOxfordPractice] = useState(false);
 
   const {
     words,
@@ -419,13 +418,17 @@ export default function Home() {
                >
                  ⚙️
                </button>
-               <button
-                 onClick={() => setShowOxfordPractice(true)}
-                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                 title="Oxford 3000 Practice"
-               >
-                 📚
-               </button>
+                <button
+                  onClick={() => setViewMode('oxford')}
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === 'oxford'
+                      ? 'bg-blue-100 dark:bg-blue-900/30'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                  title="Oxford 3000 Practice"
+                >
+                  📚
+                </button>
                <ThemeToggle />
                <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full text-sm font-medium flex items-center gap-1">
                  🔥 {statistics.streakDays}

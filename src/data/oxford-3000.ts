@@ -15,7 +15,7 @@ export const oxford3000: OxfordWord[] = [
   {
     word: "abandon",
     definition: "to leave someone or something, especially when they need you",
-    vietnamese: "đ deixar lại, bỏ rơi",
+    vietnamese: "bỏ rơi",
     synonyms: ["forsake", "desert", "relinquish", "quit", "yield"]
   },
   {

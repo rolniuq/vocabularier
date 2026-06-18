@@ -8,7 +8,8 @@ export async function evaluateAnswer(
   expectedAnswer: string,
   userAnswer: string,
   mode: 'translation' | 'synonym',
-  direction?: 'en-to-vi' | 'vi-to-en'
+  direction?: 'en-to-vi' | 'vi-to-en',
+  vietnamese?: string
 ): Promise<EvaluationResult> {
   try {
     const response = await fetch('/api/evaluate', {
@@ -22,6 +23,7 @@ export async function evaluateAnswer(
         userAnswer,
         mode,
         direction,
+        vietnamese,
       }),
     });
 
